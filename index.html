@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DualPay Калкулатор</title>
+    <style>
+        /* CSS СТИЛИЗИРАНЕ */
+        body {
+            background-color: #e0ebf7;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .calculator-card {
+            background: white;
+            padding: 40px;
+            border-radius: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 380px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .logo-box {
+            background: #2b59ff;
+            color: white;
+            width: 90px;
+            height: 65px;
+            margin: 0 auto 15px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(43, 89, 255, 0.3);
+        }
+
+        h1 { margin: 0; color: #333; font-size: 28px; font-weight: 800; }
+        .subtitle { margin: 5px 0 0; color: #888; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            color: #b0b0b0;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        .main-input-wrapper {
+            background: #fff9c4;
+            border-radius: 18px;
+            display: flex;
+            padding: 15px 20px;
+            border: 2px solid #fff176;
+        }
+
+        .main-input-wrapper input {
+            background: transparent;
+            border: none;
+            font-size: 32px;
+            font-weight: bold;
+            width: 100%;
+            outline: none;
+            color: #444;
+        }
+
+        .currency-tag { font-weight: 800; color: #999; align-self: center; font-size: 18px; }
+
+        .payment-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .payment-box {
+            background: #fffde7;
+            border: 2px solid #fff9c4;
+            border-radius: 18px;
+            padding: 12px;
+            flex: 1;
+        }
+
+        .payment-box input {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            font-weight: bold;
+            width: 100%;
+            outline: none;
+            color: #444;
+            text-align: center;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px;
+            border-radius: 15px;
+            border: 2px solid #2b59ff;
+            background: white;
+            color: #2b59ff;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button.secondary {
+            background: #eef2ff;
+            border: none;
+            color: #2b59ff;
+        }
+
+        button:hover {
+            background: #2b59ff;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .result-display {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 15px;
+            background: #f8faff;
+            min-height: 30px;
+        }
+
+        #result {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2b59ff;
+        }
+
+        .footer-rate { 
+            font-size: 10px; 
+            color: #bbb; 
+            margin-top: 25px; 
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-card">
+        <div class="header">
+            <div class="logo-box">€ ↔ лв.</div>
+            <h1>DualPay</h1>
+            <p class="subtitle">Smart Cash Control</p>
+        </div>
+
+        <div class="input-group">
+            <label>ДЪЛЖИМА СУМА</label>
+            <div class="main-input-wrapper">
+                <input type="number" id="totalAmount" placeholder="0.00" step="0.01">
+                <span class="currency-tag">BGN</span>
+            </div>
+        </div>
+
+        <div class="payment-row">
+            <div class="input-group" style="flex:1">
+                <label>ПЛАТЕНО В ЛВ.</label>
+                <div class="payment-box">
+                    <input type="number" id="paidBgn" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            <div class="input-group" style="flex:1">
+                <label>ПЛАТЕНО В €</label>
+                <div class="payment-box">
+                    <input type="number" id="paidEur" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+        </div>
+
+        <div class="button-row">
+            <button onclick="calculateChange('EUR')">ВЪРНИ В €</button>
+            <button onclick="calculateChange('BGN')" class="secondary">ВЪРНИ В ЛВ.</button>
+        </div>
+
+        <div class="result-display">
+            <div id="result">Готов за изчисление</div>
+        </div>
+
+        <p class="footer-rate">КУРС: 1 EUR = 1.95583 BGN | DualPay © 2024</p>
+    </div>
+
+    <script>
+        // ЛОГИКА НА КАЛКУЛАТОРА
+        const RATE = 1.95583;
+
+        function calculateChange(targetCurrency) {
+            // Взимане на стойностите от полетата
+            const total = parseFloat(document.getElementById('totalAmount').value) || 0;
+            const paidBgn = parseFloat(document.getElementById('paidBgn').value) || 0;
+            const paidEur = parseFloat(document.getElementById('paidEur').value) || 0;
+
+            // Изчисляване на общо платеното в лева
+            const totalPaidInBgn = paidBgn + (paidEur * RATE);
+            const changeInBgn = totalPaidInBgn - total;
+
+            const resultElement = document.getElementById('result');
+
+            if (total === 0) {
+                resultElement.innerText = "Въведете сума";
+                return;
+            }
+
+            if (changeInBgn < 0) {
+                resultElement.style.color = "#ff4444";
+                resultElement.innerText = "Недостигат: " + Math.abs(changeInBgn).toFixed(2) + " лв.";
+            } else {
+                resultElement.style.color = "#2b59ff";
+                if (targetCurrency === 'BGN') {
+                    resultElement.innerText = "Ресто: " + changeInBgn.toFixed(2) + " лв.";
+                } else {
+                    const changeInEur = changeInBgn / RATE;
+                    resultElement.innerText = "Ресто: " + changeInEur.toFixed(2) + " €";
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
